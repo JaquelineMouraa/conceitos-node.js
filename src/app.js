@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
- const { v4: uuid } = require('uuid');
+const { v4: uuid } = require('uuid'); //universal unic id
 
 const app = express();
 
@@ -11,7 +11,7 @@ app.use(cors());
 const repositories = [];
 
 app.get("/repositories", (request, response) => {
-  return response.json(repositories);
+  return response.json(repositories); //lista todos os repositorios "repositories"
 });
 
 app.post("/repositories", (request, response) => {
@@ -25,31 +25,67 @@ app.post("/repositories", (request, response) => {
     likes: 0,
   };
 
-  repositories.push(repository);
+  repositories.push(repository); //responsavel por colocar repository "dentro" do array de repositories
 
   return response.json(repository);
 });
 
 app.put("/repositories/:id", (request, response) => {
-  // TODO
+  const { id } = request.params;
+  const { title, url, techs } = request.body;
+
+  const findRepositoryIndex = repositories.findIndex(repository => 
+    repository.id === id 
+  );
+
+  if (findRepositoryIndex === -1) {
+    return response.status(400).json({ error: 'Repository does not find.'});
+  }
+
+  const repository = {
+    id,
+    title, 
+    url,
+    techs,
+    likes: repositories[findRepositoryIndex].likes,
+  };
+
+  repositories[findRepositoryIndex] = repository
+
+  return response.json(repository);
+
 });
 
 app.delete("/repositories/:id", (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const findRepositoryIndex = repositories.findIndex( repository => 
+    repository.id === id 
+  );
+
+  if (findRepositoryIndex >= 0) {
+    repositories.splice(findRepositoryIndex, 1);
+  } else {
+    return response.status(400).json({ error: 'Repository does not find'});
+  }
+
+  return response.status(204).send();
 });
 
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
 
-  const repository = repositories.find(repository => repository.id === id);
+  const findRepositoryIndex = repositories.findIndex( repository => 
+    repository.id === id 
+  );
 
-  if (!repository) {
-    return response.status(400).send();
+  if (findRepositoryIndex === -1) {
+    return response.status(400).json({ error: 'Repository does not find.'});
   }
 
-  repository.likes += 1;
+  repositories[findRepositoryIndex].likes++;
 
-  return response.json(repository);
+  return response.json(repositories[findRepositoryIndex]);
 });
 
 module.exports = app;
